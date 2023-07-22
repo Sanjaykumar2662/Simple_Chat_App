@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "964092543038",
+    "project_id": "nsic-chat-app",
+    "storage_bucket": "nsic-chat-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:964092543038:android:8d196c47ed49ec0cf4116f",
+        "android_client_info": {
+          "package_name": "com.arunbalaji.letschat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "964092543038-tb3gju0mq23onrnjdhga8cvdnkbv5nmq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCKT4QzJbjG_G6h-KpD8AfSO13inp6HcsM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "964092543038-tb3gju0mq23onrnjdhga8cvdnkbv5nmq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
