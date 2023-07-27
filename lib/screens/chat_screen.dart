@@ -8,12 +8,11 @@ import 'package:letschat/components/colors.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:image_picker/image_picker.dart';
 
 final _firestore = FirebaseFirestore.instance;
 User? loggedInuser;
 final focusNode = FocusNode();
+bool isToxicMessage = false;
 
 class ChatScreen extends StatefulWidget {
   static String id = 'chat_screen';
@@ -23,11 +22,12 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  String messageText = '';
   final controller = TextEditingController();
   final _auth = FirebaseAuth.instance;
   bool isEmojiVisible = false;
   bool isKeyboardVisible = false;
-  var messageText;
+  //var messageText;
 
   @override
   void initState() {
@@ -150,29 +150,37 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                       color: Colors.white,
                     ),
-                    Material(
-                      child: new Container(
-                        margin: new EdgeInsets.symmetric(horizontal: 1.0),
-                        child: new IconButton(
-                          icon: new Icon(Icons.perm_media_outlined),
-                          onPressed: mediaAccess,
-                          color: Colors.blueGrey,
-                        ),
-                      ),
-                      color: Colors.white,
-                    ),
                     Flexible(
                       child: Container(
                         child: TextField(
                           textInputAction: TextInputAction.send,
                           keyboardType: TextInputType.multiline,
                           focusNode: focusNode,
-                          onSubmitted: (value) {
+                          onSubmitted: (value) async {
+                            bool isToxicMessage = await isToxic(messageText);
+                            if (!isToxicMessage) {
+                              // Message is not toxic, add it to the 'messages' collection.
+
+                              _firestore.collection('messages').add({
+                                'sender': loggedInuser!.email,
+                                'text': messageText,
+                                'timestamp': Timestamp.now(),
+                                'is_toxic':
+                                    false, // Set 'is_toxic' to false for non-toxic messages.
+                              });
+                            } else {
+                              // Message is toxic, add it to the 'messages' collection with 'is_toxic' set to true.
+                              _firestore.collection('messages').add({
+                                'sender': loggedInuser!.email,
+                                'text': messageText,
+                                'timestamp': Timestamp.now(),
+                                'is_toxic':
+                                    true, // Set 'is_toxic' to true for toxic messages.
+                              });
+                            }
                             controller.clear();
-                            _firestore.collection('messages').add({
-                              'sender': loggedInuser!.email,
-                              'text': messageText,
-                              'timestamp': Timestamp.now(),
+                            setState(() {
+                              messageText = '';
                             });
                           },
                           maxLines: null,
@@ -192,51 +200,31 @@ class _ChatScreenState extends State<ChatScreen> {
                         child: new IconButton(
                           icon: new Icon(Icons.send),
                           onPressed: () async {
-                            bool isToxicMessage = await isToxic(messageText,
-                                'AIzaSyC6RPPVmZ3Bdnfo7IYAXc9JsbnG8U5rzOs');
+                            bool isToxicMessage = await isToxic(messageText);
                             if (!isToxicMessage) {
+                              // Message is not toxic, add it to the 'messages' collection.
+
                               _firestore.collection('messages').add({
                                 'sender': loggedInuser!.email,
                                 'text': messageText,
                                 'timestamp': Timestamp.now(),
+                                'is_toxic':
+                                    false, // Set 'is_toxic' to false for non-toxic messages.
                               });
                             } else {
-                              // Handle toxic message, e.g., show an alert or prevent sending
-                              showDialog(
-                                context: context,
-                                builder: (context) {
-                                  return AlertDialog(
-                                    title: Text('Toxic Message'),
-                                    content: Text(
-                                        'This message contains toxic content. Please refrain from using inappropriate language.'),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                        },
-                                        child: Text('OK'),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
+                              // Message is toxic, add it to the 'messages' collection with 'is_toxic' set to true.
+                              _firestore.collection('messages').add({
+                                'sender': loggedInuser!.email,
+                                'text': messageText,
+                                'timestamp': Timestamp.now(),
+                                'is_toxic':
+                                    true, // Set 'is_toxic' to true for toxic messages.
+                              });
                             }
                             controller.clear();
                             setState(() {
                               messageText = '';
                             });
-
-                            // if (messageText.isNotEmpty) {
-                            //   controller.clear();
-                            //   _firestore.collection('messages').add({
-                            //     'sender': loggedInuser!.email,
-                            //     'text': messageText,
-                            //     'timestamp': Timestamp.now(),
-                            //   });
-                            //   setState(() {
-                            //     messageText = '';
-                            //   });
-                            // }
                           },
                           color: Colors.blueGrey,
                         ),
@@ -252,65 +240,6 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ),
     );
-  }
-
-  Future<bool> isToxic(String message, String apiKey) async {
-    final perspectiveUrl =
-        'https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key=$apiKey';
-
-    final Map<String, dynamic> body = {
-      'comment': {'text': message},
-      'languages': ['en'],
-      'requestedAttributes': {'TOXICITY': {}},
-    };
-
-    final response = await http.post(Uri.parse(perspectiveUrl),
-        headers: {'Content-Type': 'application/json'}, body: json.encode(body));
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      final toxicityScore =
-          data['attributeScores']['TOXICITY']['summaryScore']['value'];
-
-      // print('Toxicity Score: $toxicityScore'); // Add this debug statement
-
-      // Set the toxicity threshold as per your requirement
-      return toxicityScore >= 0.5;
-    } else {
-      throw Exception('Failed to analyze message');
-    }
-  }
-
-  Future<void> mediaAccess() async {
-    final permissionStatus = await Permission.storage.status;
-    if (permissionStatus.isDenied) {
-      // Here just ask for the permission for the first time
-      await Permission.storage.request();
-
-      // I noticed that sometimes popup won't show after user press deny
-      // so I do the check once again but now go straight to appSettings
-      if (permissionStatus.isDenied) {
-        await openAppSettings();
-      }
-    } else if (permissionStatus.isPermanentlyDenied) {
-      // Here open app settings for user to manually enable permission in case
-      // where permission was permanently denied
-      await openAppSettings();
-    } else {
-      final ImagePicker _picker = ImagePicker();
-      final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-      // Do stuff that require permission here
-      if (pickedFile != null) {
-        // Send the file to Firebase or store it in Firebase storage
-        // For example:
-        final fileBytes = await pickedFile.readAsBytes();
-        // You can now upload `fileBytes` to Firebase Storage or Firestore
-
-        // To pick a video, you can use:
-        // final pickedFile = await _picker.pickVideo(source: ImageSource.gallery);
-        // and then similarly process the picked video file.
-      }
-    }
   }
 
   void onClickedEmoji() async {
@@ -361,11 +290,13 @@ class MessagesStream extends StatelessWidget {
           final messageSender = data()['sender'];
           final currentUser = loggedInuser!.email;
           final timeStamp = data()['timestamp'];
+          final isToxicMessage = data()['is_toxic'];
           return MessageBubble(
             sender: messageSender,
             text: messageText,
             timestamp: timeStamp,
             isMe: currentUser == messageSender,
+            isToxicMessage: isToxicMessage,
           );
         }).toList();
 
@@ -383,11 +314,17 @@ class MessagesStream extends StatelessWidget {
 }
 
 class MessageBubble extends StatelessWidget {
-  MessageBubble({this.sender, this.text, this.timestamp, this.isMe});
+  MessageBubble(
+      {this.sender,
+      this.text,
+      this.timestamp,
+      this.isMe,
+      this.isToxicMessage = false});
   final String? sender;
   final String? text;
   final Timestamp? timestamp;
   final bool? isMe;
+  final bool? isToxicMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -419,11 +356,13 @@ class MessageBubble extends StatelessWidget {
             color:
                 isMe! ? PalletteColors.primaryGrey : PalletteColors.lightBlue,
             child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+              padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
               child: Column(
                 crossAxisAlignment:
                     isMe! ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                 children: [
+                  if (isToxicMessage == true)
+                    Image.asset('images/Warning.png', height: 20, width: 20),
                   Text(
                     text!,
                     style: TextStyle(
@@ -450,5 +389,32 @@ class MessageBubble extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+Future<bool> isToxic(String message) async {
+  final perspectiveUrl =
+      'https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key=AIzaSyC6RPPVmZ3Bdnfo7IYAXc9JsbnG8U5rzOs';
+
+  final Map<String, dynamic> body = {
+    'comment': {'text': message},
+    'languages': ['en'],
+    'requestedAttributes': {'TOXICITY': {}},
+  };
+
+  final response = await http.post(Uri.parse(perspectiveUrl),
+      headers: {'Content-Type': 'application/json'}, body: json.encode(body));
+
+  if (response.statusCode == 200) {
+    final data = json.decode(response.body);
+    final toxicityScore =
+        data['attributeScores']['TOXICITY']['summaryScore']['value'];
+
+    // print('Toxicity Score: $toxicityScore'); // Add this debug statement
+
+    // Set the toxicity threshold as per your requirement
+    return toxicityScore >= 0.5;
+  } else {
+    throw Exception('Failed to analyze message');
   }
 }

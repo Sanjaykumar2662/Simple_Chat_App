@@ -1,1 +1,1 @@
-# Simple_Chat_App It is a flutter based app which allows user to login and and send text message along with emoji option and it will also detect bullying word in the message and doesnt not allow bully message to send.
+# Simple_Chat_App

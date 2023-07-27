@@ -6,8 +6,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:letschat/widgets/tabbutton_widget.dart';
 
-
-
 class WelcomeScreen extends StatefulWidget {
   static String id = 'welcome_screen';
   @override
@@ -26,16 +24,13 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       controller = AnimationController(
         duration: Duration(seconds: 5),
         vsync: this,
-
       );
       animationcurve =
           CurvedAnimation(parent: controller, curve: Curves.decelerate);
       controller.forward();
 
       controller.addListener(() {
-        setState(() {
-
-        });
+        setState(() {});
       });
     });
   }
@@ -67,7 +62,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               Row(
-
                 children: <Widget>[
                   Padding(
                     padding: const EdgeInsets.only(left: 20.0),
@@ -79,20 +73,17 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                       ),
                     ),
                   ),
-
                 ],
               ),
               Padding(
                 padding: const EdgeInsets.only(left: 30, right: 10),
-                child: Text(
-                    "Instantly chat with friends",
+                child: Text("Instantly chat with friends",
                     style: GoogleFonts.lato(
-                      textStyle: TextStyle(color: Colors.white,
+                      textStyle: TextStyle(
+                          color: Colors.white,
                           fontSize: 50.0,
                           fontWeight: FontWeight.w900),
-                    )
-                ),
-
+                    )),
               ),
               Padding(
                 padding: const EdgeInsets.only(left: 30, right: 30, top: 0.8),
@@ -101,9 +92,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     style: GoogleFonts.lato(
                       textStyle: TextStyle(
                           color: Colors.white, fontSize: 18.0, height: 1.5),
-                    )
-                ),
-
+                    )),
               ),
               SizedBox(
                 height: 22.0,
@@ -116,11 +105,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     btnColor: PalletteColors.primaryRed,
                     btnTxtColor: Colors.white,
                     btnText: "Create new account",
-
                     btnFunction: () {
-                      Navigator.push(context, PageTransition(
-                          type: PageTransitionType.fade,
-                          child: RegistrationScreen()));
+                      Navigator.push(
+                          context,
+                          PageTransition(
+                              type: PageTransitionType.fade,
+                              child: RegistrationScreen()));
                     },
                   ),
                 ),
@@ -133,10 +123,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     btnColor: PalletteColors.lightBlue,
                     btnTxtColor: Colors.black,
                     btnText: "Login with email",
-
                     btnFunction: () {
-                      Navigator.push(context, PageTransition(
-                          type: PageTransitionType.fade, child: LoginScreen()));
+                      Navigator.push(
+                          context,
+                          PageTransition(
+                              type: PageTransitionType.fade,
+                              child: LoginScreen()));
                     },
                   ),
                 ),
@@ -144,32 +136,24 @@ class _WelcomeScreenState extends State<WelcomeScreen>
               SizedBox(
                 height: 28.0,
               ),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(
                         left: 20.0, right: 20.0, bottom: 20.0),
-                    child: Text(
-                        "©2021,ArunBalajiR",
+                    child: Text("©2023,SanjayKumar.H",
                         style: GoogleFonts.lato(
-                          textStyle: TextStyle(
-                              color: Colors.white, fontSize: 10.0),
-                        )
-                    ),
-
+                          textStyle:
+                              TextStyle(color: Colors.white, fontSize: 10.0),
+                        )),
                   ),
                 ],
               ),
-
             ],
           ),
         ),
       ),
     );
   }
-
-
 }
-
