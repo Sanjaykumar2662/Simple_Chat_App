@@ -361,8 +361,6 @@ class MessageBubble extends StatelessWidget {
                 crossAxisAlignment:
                     isMe! ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                 children: [
-                  if (isToxicMessage == true)
-                    Image.asset('images/Warning.png', height: 20, width: 20),
                   Text(
                     text!,
                     style: TextStyle(
@@ -370,6 +368,8 @@ class MessageBubble extends StatelessWidget {
                       color: isMe! ? Colors.white : Colors.black54,
                     ),
                   ),
+                  if (isToxicMessage == true)
+                    Image.asset('images/Warning.png', height: 50, width: 50),
                   Padding(
                     padding: const EdgeInsets.only(top: 6.0),
                     child: Text(
